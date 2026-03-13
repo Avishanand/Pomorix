@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pomorix Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+
+<style>
+body{
+font-family:Arial;
+margin:0;
+background:linear-gradient(-45deg,#74ebd5,#acb6e5,#89f7fe,#66a6ff);
+background-size:400% 400%;
+animation:bgmove 12s ease infinite;
+color:#333;
+}
+#particles-js{
+position:fixed;
+width:100%;
+height:100%;
+top:0;
+left:0;
+z-index:-1;
+}
+@keyframes bgmove{
+0%{background-position:0% 50%}
+50%{background-position:100% 50%}
+100%{background-position:0% 50%}
+}
+header{
+padding:15px;
+background:#2c3e50;
+color:white;
+display:flex;
+justify-content:space-between;
+}
+.main{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+padding:20px;
+}
+@media(max-width:900px){
+.main{grid-template-columns:1fr;}
+}
+.card{
+background:white;
+padding:20px;
+border-radius:15px;
+box-shadow:0 8px 25px rgba(0,0,0,0.1);
+animation:cardFloat 0.8s ease;
+transition:transform 0.3s, box-shadow 0.3s;
+}
+.card:hover{
+transform:translateY(-6px);
+box-shadow:0 12px 30px rgba(0,0,0,0.2);
+}
+@keyframes cardFloat{
+from{opacity:0; transform:translateY(20px);}
+to{opacity:1; transform:translateY(0);}
+}
+.timer{
+font-size:80px;
+text-align:center;
+font-weight:bold;
+margin:20px 0;
+color:#27ae60;
+animation:pulse 2s infinite;
+}
+@keyframes pulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.05)}
+100%{transform:scale(1)}
+}
+button{
+padding:8px 15px;
+border:none;
+border-radius:8px;
+background:#27ae60;
+color:white;
+cursor:pointer;
+margin:5px;
+}
+.stats{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
+}
+.stat{
+background:#ecf0f1;
+padding:10px;
+border-radius:10px;
+text-align:center;
+}
+.progress{
+height:10px;
+background:#ddd;
+border-radius:10px;
+overflow:hidden;
+margin-top:10px;
+}
+.progress div{
+height:10px;
+background:#27ae60;
+width:0%;
+}
+.tree{
+width:40px;
+height:60px;
+display:inline-block;
+margin:6px;
+position:relative;
+animation:growTree 1s ease;
+}
+@keyframes growTree{
+0%{transform:scale(0); opacity:0;}
+100%{transform:scale(1); opacity:1;}
+}
+.trunk{
+width:6px;
+height:25px;
+background:#6b3e26;
+position:absolute;
+bottom:0;
+left:50%;
+transform:translateX(-50%);
+}
+.leaf{
+width:35px;
+height:35px;
+background:radial-gradient(circle,#2ecc71,#27ae60);
+border-radius:50%;
+position:absolute;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+animation:leafMove 3s ease-in-out infinite;
+}
+@keyframes leafMove{
+0%{transform:translateX(-50%) rotate(0deg)}
+50%{transform:translateX(-50%) rotate(5deg)}
+100%{transform:translateX(-50%) rotate(0deg)}
+}
+.seed{
+width:12px;
+height:12px;
+background:#8e5b3a;
+border-radius:50%;
+margin:10px;
+display:inline-block;
+}
+.badge{
+background:gold;
+padding:5px 10px;
+border-radius:5px;
+margin:4px;
+display:inline-block;
+}
+.heatmap{
+display:grid;
+grid-template-columns:repeat(7,22px);
+gap:4px;
+}
+.day{
+width:22px;
+height:22px;
+background:#eee;
+border-radius:4px;
+}
+.meter{
+width:100%;
+height:14px;
+background:#ddd;
+border-radius:10px;
+overflow:hidden;
+margin-top:10px;
+}
+#focusBar{
+height:100%;
+width:0%;
+background:linear-gradient(90deg,#27ae60,#2ecc71);
+transition:width 1s;
+}
+.task{
+display:flex;
+justify-content:space-between;
+margin:5px 0;
+background:#f1f1f1;
+padding:6px;
+border-radius:6px;
+}
+/* DARK MODE */
+body.dark{
+background:#0f172a;
+color:#e5e7eb;
+}
+body.dark header{background:#020617;}
+body.dark .card{background:#1e293b; color:#e5e7eb; box-shadow:0 8px 25px rgba(0,0,0,0.5);}
+body.dark .stat{background:#334155;}
+body.dark .task{background:#334155;}
+body.dark .progress{background:#475569;}
+body.dark .meter{background:#475569;}
+body.dark button{background:#22c55e;}
+body.dark input{background:#1e293b; color:white; border:1px solid #475569;}
+body.dark .day{background:#334155;}
+#xpbar{
+background:linear-gradient(90deg,#22c55e,#4ade80,#22c55e);
+background-size:200% 200%;
+animation:xpGlow 3s linear infinite;
+}
+@keyframes xpGlow{0%{background-position:0%}100%{background-position:200%}}
+</style>
+</head>
+
+<body>
+<div id="particles-js"></div>
+<audio id="alarm"></audio>
+
+<header>
+<h2 id="welcome">🌿 Pomorix Pro</h2>
+<button onclick="toggleDark()">🌙</button>
+</header>
+
+<div id="login" class="card" style="margin:20px">
+<h3>Login</h3>
+<input id="username" placeholder="Enter name">
+<button onclick="login()">Start</button>
+</div>
+
+<div id="app" style="display:none">
+<div class="main">
+
+<div class="card">
+<h3 id="mode">Study Mode</h3>
+Study <input id="studyInput" type="number" value="25">
+Break <input id="breakInput" type="number" value="5">
+<br><br>
+<select id="subject">
+<option>Math</option>
+<option>Physics</option>
+<option>Chemistry</option>
+<option>Biology</option>
+<option>English</option>
+</select>
+<div class="timer" id="timer">25:00</div>
+<button onclick="startTimer()">Start</button>
+<button onclick="pauseTimer()">Pause</button>
+<button onclick="resetTimer()">Reset</button>
+</div>
+
+<div class="card">
+<h3>Stats</h3>
+<div class="stats">
+<div class="stat">Sessions<br><span id="sessions">0</span></div>
+<div class="stat">XP<br><span id="xp">0</span></div>
+<div class="stat">Level<br><span id="level">1</span></div>
+<div class="stat">Trees<br><span id="trees">0</span></div>
+<div class="stat">Streak<br><span id="streak">0</span></div>
+<div class="stat">Focus<br><span id="focus">0</span></div>
+</div>
+<div class="progress"><div id="xpbar"></div></div>
+<h3>Focus Meter</h3>
+<div class="meter"><div id="focusBar"></div></div>
+</div>
+
+<div class="card">
+<h3>Forest Garden</h3>
+<div id="garden"></div>
+</div>
+
+<div class="card">
+<h3>Daily Tasks</h3>
+<input id="taskInput" placeholder="Add task">
+<button onclick="addTask()">Add</button>
+<div id="taskList"></div>
+</div>
+
+<div class="card">
+<h3>Heatmap</h3>
+<div id="heatmap" class="heatmap"></div>
+</div>
+
+<div class="card">
+<h3>Weekly Chart</h3>
+<canvas id="chart"></canvas>
+</div>
+
+<div class="card">
+<h3>Achievements</h3>
+<div id="badges"></div>
+</div>
+
+<div class="card">
+<h3>Analytics</h3>
+<p>Total Focus Minutes: <span id="focusMinutes">0</span></p>
+<p>Average Sessions/Day: <span id="avgSessions">0</span></p>
+</div>
+
+<div class="card">
+<h3>AI Study Planner</h3>
+<input id="goalText" placeholder="Example: math physics">
+<button onclick="plan()">Generate Plan</button>
+<p id="planResult"></p>
+</div>
+
+</div>
+</div>
+
+<script>
+let badges=[], sessions=0, xp=0, level=1, trees=0, streak=0, focusScore=0, focusMinutes=0
+let garden=[], weekly=[0,0,0,0,0,0,0], tasks=[]
+let timer=null, time=1500, focus=true, sessionCount=0
+let alarm=document.getElementById("alarm")
+
+function playAlarm(){
+alarm.src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
+alarm.volume=1
+alarm.play()
+setTimeout(()=>{alarm.pause(); alarm.currentTime=0},3000)
+}
+
+function login(){
+let name=document.getElementById("username").value
+if(!name) name="Student"
+localStorage.setItem("pomorixUser",name)
+document.getElementById("welcome").innerText = `🌿 Pomorix Pro | Welcome, ${name}`
+
+document.getElementById("login").style.display="none"
+document.getElementById("app").style.display="block"
+
+loadData()
+let theme=localStorage.getItem("pomorixTheme")
+if(theme==="dark"){document.body.classList.add("dark")}
+
+updateUI()
+renderGarden()
+renderHeatmap()
+renderTasks()
+renderBadges()
+}
+
+function startTimer(){
+if(timer) return
+let study=document.getElementById("studyInput").value
+let br=document.getElementById("breakInput").value
+if(focus===true){time=study*60; document.getElementById("mode").innerText="Study Mode"}
+else if(focus==="long"){time=15*60; document.getElementById("mode").innerText="Long Break"}
+else{time=br*60; document.getElementById("mode").innerText="Break"}
+document.getElementById("timer").innerText = Math.floor(time/60)+":"+((time%60<10)?"0":"")+(time%60)
+timer=setInterval(updateTimer,1000)
+}
+
+function updateTimer(){
+time--
+let m=Math.floor(time/60), s=time%60
+document.getElementById("timer").innerText=m+":"+(s<10?"0":"")+s
+if(time<=0){
+playAlarm()
+clearInterval(timer); timer=null
+if(focus===true){finishSession(); focus=(sessionCount%4===0)?"long":false} 
+else {focus=true}
+startTimer()
+}
+}
+
+function pauseTimer(){clearInterval(timer); timer=null}
+
+function resetTimer(){
+clearInterval(timer); timer=null
+let study=document.getElementById("studyInput").value
+time=study*60
+document.getElementById("timer").innerText=study + ":00"
+}
+
+function finishSession(){
+sessions++; sessionCount++; xp+=20; trees++; streak++; focusScore+=10; focusMinutes+=25
+if(xp>=level*100){level++; addBadge("Level "+level)}
+let stage=Math.min(2,Math.floor(sessions/3))
+garden.push(stage)
+updateWeekly(); updateUI(); renderGarden(); renderHeatmap(); checkAchievements(); saveData()
+}
+
+function updateUI(){
+document.getElementById("sessions").innerText=sessions
+document.getElementById("xp").innerText=xp
+document.getElementById("level").innerText=level
+document.getElementById("trees").innerText=trees
+document.getElementById("streak").innerText=streak
+document.getElementById("focus").innerText=focusScore
+document.getElementById("focusMinutes").innerText=focusMinutes
+document.getElementById("avgSessions").innerText=(sessions/7).toFixed(1)
+document.getElementById("xpbar").style.width=(xp%100)+"%"
+document.getElementById("focusBar").style.width=Math.min(focusScore,100)+"%"
+}
+
+function renderGarden(){
+let g=document.getElementById("garden"); g.innerHTML=""
+garden.forEach(stage=>{
+if(stage==0){let seed=document.createElement("div"); seed.className="seed"; g.appendChild(seed)}
+if(stage==1){let plant=document.createElement("div"); plant.className="tree"; plant.innerHTML="<div class='trunk'></div>"; g.appendChild(plant)}
+if(stage==2){let tree=document.createElement("div"); tree.className="tree"; tree.innerHTML="<div class='trunk'></div><div class='leaf'></div>"; g.appendChild(tree)}
+})
+}
+
+function renderHeatmap(){
+let map=document.getElementById("heatmap"); map.innerHTML=""
+for(let i=0;i<49;i++){
+let d=document.createElement("div"); d.className="day"
+if(i<garden.length)d.style.background="#27ae60"
+map.appendChild(d)
+}
+}
+
+function updateWeekly(){
+let day=new Date().getDay()
+weekly[day]++
+chart.data.datasets[0].data=weekly
+chart.update()
+}
+
+function checkAchievements(){
+if(sessions>=1) addBadge("First Session")
+if(sessions>=10) addBadge("10 Sessions")
+if(sessions>=25) addBadge("25 Sessions")
+if(level>=5) addBadge("Level 5")
+}
+
+function addBadge(name){
+if(badges.includes(name)) return
+badges.push(name)
+renderBadges()
+saveData()
+}
+
+function addTask(){
+let t=document.getElementById("taskInput").value
+if(!t) return
+tasks.push(t)
+document.getElementById("taskInput").value=""
+renderTasks()
+saveData()
+}
+
+function renderBadges(){
+let box=document.getElementById("badges"); box.innerHTML=""
+badges.forEach(b=>{let div=document.createElement("div"); div.className="badge"; div.innerText=b; box.appendChild(div)})
+}
+
+function renderTasks(){
+let list=document.getElementById("taskList"); list.innerHTML=""
+tasks.forEach((t,i)=>{let d=document.createElement("div"); d.className="task"; d.innerHTML=t+" <button onclick='removeTask("+i+")'>✔</button>"; list.appendChild(d)})
+}
+
+function removeTask(i){tasks.splice(i,1); renderTasks(); saveData()}
+
+let chart=new Chart(document.getElementById("chart"),{
+type:"bar",
+data:{labels:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], datasets:[{data:weekly, backgroundColor:"#27ae60"}]},
+options:{plugins:{legend:{display:false}}}
+})
+
+function plan(){
+let text=document.getElementById("goalText").value.toLowerCase()
+let subjects=[]
+if(text.includes("math")) subjects.push("Math")
+if(text.includes("physics")) subjects.push("Physics")
+if(text.includes("chem")) subjects.push("Chemistry")
+if(text.includes("bio")) subjects.push("Biology")
+if(subjects.length===0) subjects=["Math","Physics","Chemistry"]
+let result="📚 Smart Study Plan\n\n"
+subjects.forEach(s=>{result+="• "+s+" → 2 sessions\n"})
+document.getElementById("planResult").innerText=result
+}
+
+function toggleDark(){
+document.body.classList.toggle("dark")
+let mode=document.body.classList.contains("dark")?"dark":"light"
+localStorage.setItem("pomorixTheme",mode)
+}
+
+function saveData(){
+localStorage.setItem("pomorixData",JSON.stringify({sessions,xp,level,trees,streak,focusScore,garden,weekly,tasks,focusMinutes,badges}))
+}
+
+function loadData(){
+let data=localStorage.getItem("pomorixData")
+if(!data) return
+data=JSON.parse(data)
+sessions=data.sessions
+xp=data.xp
+level=data.level
+trees=data.trees
+streak=data.streak
+focusScore=data.focusScore
+garden=data.garden
+weekly=data.weekly
+tasks=data.tasks||[]
+focusMinutes=data.focusMinutes||0
+badges=data.badges||[]
+renderBadges()
+chart.data.datasets[0].data=weekly
+chart.update()
+renderTasks()
+renderHeatmap()
+updateUI()
+}
+
+particlesJS("particles-js",{
+particles:{
+number:{value:50},
+size:{value:3},
+move:{speed:1},
+line_linked:{enable:true},
+color:{value:"#27ae60"}
+},
+retina_detect:true
+})
+</script>
+</body>
+</html>
